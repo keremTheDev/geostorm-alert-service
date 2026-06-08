@@ -36,6 +36,10 @@ async fn main() -> ServiceResult<()> {
     let db_pool = PgPool::connect(&database_url).await?;
     println!("[startup] PostgreSQL connection pool ready");
 
+    println!("[startup] Running PostgreSQL migrations");
+    sqlx::migrate!("./migrations").run(&db_pool).await?;
+    println!("[startup] PostgreSQL migrations complete");
+
     println!("[startup] Connecting to RabbitMQ");
     let rabbitmq_connection = rabbitmq::connect(&rabbitmq_url).await?;
     println!("[startup] RabbitMQ connection ready");
