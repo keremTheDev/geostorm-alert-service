@@ -1,0 +1,11 @@
+ALTER TABLE alert_logs
+ADD COLUMN IF NOT EXISTS event_id TEXT,
+ADD COLUMN IF NOT EXISTS schema_version TEXT,
+ADD COLUMN IF NOT EXISTS report_path TEXT,
+ADD COLUMN IF NOT EXISTS email_status TEXT,
+ADD COLUMN IF NOT EXISTS processed_at TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS error_message TEXT;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_alert_logs_event_id
+ON alert_logs (event_id)
+WHERE event_id IS NOT NULL;
