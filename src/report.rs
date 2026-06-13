@@ -15,6 +15,7 @@ pub async fn generate_alert_report(
     let report_path = reports_dir.join(format!("ALERT_{safe_event_id}.txt"));
     let dispatch_timestamp = Utc::now();
     let risk_details = format_risk_details(alert);
+    let provider_details = format_provider_details(alert);
 
     let report_body = format!(
         "\
@@ -28,6 +29,10 @@ GEOSTORM-AI RISK DISPATCH REPORT
 {risk_details}
 Event Timestamp: {event_timestamp}
 Dispatch Timestamp: {dispatch_timestamp}
+
+Data Providers
+--------------
+{provider_details}
 
 Alert Details
 -------------
@@ -46,6 +51,7 @@ satellite operations coordination, and downstream notification readiness.
         activity_id = alert.activity_id,
         alert_level = alert.alert_level,
         risk_details = risk_details,
+        provider_details = provider_details,
         event_timestamp = alert.timestamp.to_rfc3339(),
         dispatch_timestamp = dispatch_timestamp.to_rfc3339(),
         details = alert.details
@@ -78,6 +84,25 @@ fn format_risk_details(alert: &SpaceWeatherAlert) -> String {
 
     if let Some(risk_basis) = alert.risk_basis() {
         lines.push(format!("\tRisk Basis: {risk_basis}"));
+    }
+
+    lines.join("\n")
+}
+
+fn format_provider_details(alert: &SpaceWeatherAlert) -> String {
+    let esa_status = alert.esa_source_status().unwrap_or("not_reported");
+    let esa_dataset = alert.esa_dataset_id().unwrap_or("not_configured");
+    let esa_error = alert.esa_error();
+
+    let mut lines = vec![
+        "\tNASA DONKI: primary CME telemetry provider".to_string(),
+        "\tNOAA SWPC: primary alert/watch telemetry provider".to_string(),
+        format!("\tESA SWE/HAPI: {esa_status}"),
+        format!("\tESA Dataset: {esa_dataset}"),
+    ];
+
+    if let Some(error) = esa_error {
+        lines.push(format!("\tESA Note: {error}"));
     }
 
     lines.join("\n")

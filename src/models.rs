@@ -15,6 +15,12 @@ pub struct SpaceWeatherAlert {
     pub forecast_risk_level: Option<String>,
     #[serde(default)]
     pub risk_basis: Option<String>,
+    #[serde(default)]
+    pub esa_source_status: Option<String>,
+    #[serde(default)]
+    pub esa_dataset_id: Option<String>,
+    #[serde(default)]
+    pub esa_error: Option<String>,
     pub details: String,
     pub timestamp: DateTime<Utc>,
 }
@@ -30,6 +36,18 @@ impl SpaceWeatherAlert {
 
     pub fn risk_basis(&self) -> Option<&str> {
         non_empty_optional(self.risk_basis.as_deref())
+    }
+
+    pub fn esa_source_status(&self) -> Option<&str> {
+        non_empty_optional(self.esa_source_status.as_deref())
+    }
+
+    pub fn esa_dataset_id(&self) -> Option<&str> {
+        non_empty_optional(self.esa_dataset_id.as_deref())
+    }
+
+    pub fn esa_error(&self) -> Option<&str> {
+        non_empty_optional(self.esa_error.as_deref())
     }
 }
 
