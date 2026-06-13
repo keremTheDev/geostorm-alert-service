@@ -14,16 +14,18 @@ pub async fn generate_alert_report(
     let safe_event_id = sanitize_report_id(&alert.normalized_event_id());
     let report_path = reports_dir.join(format!("ALERT_{safe_event_id}.txt"));
     let dispatch_timestamp = Utc::now();
+    let risk_details = format_risk_details(alert);
 
     let report_body = format!(
         "\
-GEOSTORM-AI CRITICAL RISK DISPATCH REPORT
-==========================================
+GEOSTORM-AI RISK DISPATCH REPORT
+=================================
 
 	Activity ID: {activity_id}
 	Event ID: {event_id}
 	Schema Version: {schema_version}
-	Alert Level: {alert_level}
+	Canonical Alert Level: {alert_level}
+{risk_details}
 Event Timestamp: {event_timestamp}
 Dispatch Timestamp: {dispatch_timestamp}
 
@@ -43,6 +45,7 @@ satellite operations coordination, and downstream notification readiness.
         schema_version = alert.normalized_schema_version(),
         activity_id = alert.activity_id,
         alert_level = alert.alert_level,
+        risk_details = risk_details,
         event_timestamp = alert.timestamp.to_rfc3339(),
         dispatch_timestamp = dispatch_timestamp.to_rfc3339(),
         details = alert.details
@@ -60,6 +63,24 @@ satellite operations coordination, and downstream notification readiness.
     );
 
     Ok(report_path)
+}
+
+fn format_risk_details(alert: &SpaceWeatherAlert) -> String {
+    let mut lines = Vec::new();
+
+    if let Some(current_risk_level) = alert.current_risk_level() {
+        lines.push(format!("\tCurrent Observed Level: {current_risk_level}"));
+    }
+
+    if let Some(forecast_risk_level) = alert.forecast_risk_level() {
+        lines.push(format!("\tForecast Level: {forecast_risk_level}"));
+    }
+
+    if let Some(risk_basis) = alert.risk_basis() {
+        lines.push(format!("\tRisk Basis: {risk_basis}"));
+    }
+
+    lines.join("\n")
 }
 
 fn sanitize_report_id(report_id: &str) -> String {
